@@ -1,0 +1,80 @@
+{
+  "name": "Demo",
+  "version": "1.0.0",
+  "tools": [
+    {
+      "name": "add",
+      "description": "Adds two numbers together",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "a": {
+            "type": "number",
+            "description": "First number"
+          },
+          "b": {
+            "type": "number",
+            "description": "Second number"
+          }
+        },
+        "required": ["a", "b"]
+      }
+    }
+  ],
+  "prompts": [
+    {
+      "name": "review-code",
+      "description": "Reviews provided code",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string",
+            "description": "The code to review"
+          }
+        },
+        "required": ["code"]
+      }
+    },
+    {
+      "name": "summarize-text",
+      "description": "Summarizes provided text",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "text": {
+            "type": "string",
+            "description": "The text to summarize"
+          }
+        },
+        "required": ["text"]
+      }
+    },
+    {
+      "name": "joke-summary",
+      "description": "Fetches a random joke and asks for a summary",
+      "parameters": {
+        "type": "object",
+        "properties": {},
+        "required": []
+      }
+    }
+  ],
+  "resources": [
+    {
+      "name": "greeting",
+      "description": "Generates a greeting for a given name",
+      "template": "greeting://{name}",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Name to greet"
+          }
+        },
+        "required": ["name"]
+      }
+    }
+  ]
+} 
