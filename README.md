@@ -114,13 +114,39 @@ curl -X POST http://localhost:3001/tool \
     }
   }'
 
-# Get device info (requires token from login)
+# Get device info using Authorization header
+curl -X POST http://localhost:3001/tool \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer your-auth-token" \
+  -d '{
+    "tool": "banbury-get-device-info",
+    "parameters": {
+      "device_name": "your-device",
+      "environment": "dev"
+    }
+  }'
+
+# Get device info using X-API-Key and Authorization Bearer headers
+curl -X POST http://localhost:3001/tool \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer your-auth-token" \
+  -H "X-API-Key: your-mcp-server-api-key" \
+  -d '{
+    "tool": "banbury-get-device-info",
+    "parameters": {
+      "device_name": "your-device",
+      "environment": "dev"
+    }
+  }'
+
+# Get device info using parameters (legacy method)
 curl -X POST http://localhost:3001/tool \
   -H "Content-Type: application/json" \
   -d '{
     "tool": "banbury-get-device-info",
     "parameters": {
       "token": "your-auth-token", 
+      "apiKey": "your-api-key",
       "device_name": "your-device",
       "environment": "dev"
     }
@@ -133,8 +159,12 @@ The MCP server integrates seamlessly with the Banbury frontend:
 
 1. Set environment variable: `REACT_APP_MCP_SERVER_URL=http://localhost:3001`
 2. The frontend automatically uses stored Banbury credentials
-3. AI conversations can call Banbury tools naturally
-4. Real-time status indicators show connection/auth state
+3. Authentication headers are automatically included in all requests:
+   - `X-Auth-Token`: User's Banbury token
+   - `X-Username`: User's Banbury username
+   - `Authorization`: MCP server API key (if configured)
+4. AI conversations can call Banbury tools naturally
+5. Real-time status indicators show connection/auth state
 
 ## Development
 
@@ -206,3 +236,15 @@ npm run type-check
 - Ensure token has proper permissions
 
 For more help, check the server logs or the Banbury frontend integration guide.
+
+### Authentication Methods
+
+The MCP server supports multiple authentication methods with the following priority order:
+
+1. **Authorization Header**: `Authorization: Bearer <token>` (Primary - matches axios global headers)
+2. **X-Auth-Token Header**: `X-Auth-Token: <token>` (Fallback)
+3. **X-API-Key Header**: `X-API-Key: <api-key>` (For MCP server API keys)
+4. **X-Username Header**: `X-Username: <username>` (For user context)
+5. **Request Parameters**: Include `token` and/or `apiKey` in the parameters object (Legacy)
+
+The frontend automatically sends the Banbury user token via `Authorization: Bearer <token>` header, following the same pattern as the axios global headers implementation.

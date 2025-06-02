@@ -55,16 +55,31 @@ if [ "$TRANSPORT_MODE" = "http" ]; then
     echo "   # Health check"
     echo "   curl http://localhost:$HTTP_PORT/health"
     echo ""
-    echo "   # Call a tool"
+    echo "   # Call a tool with Authorization header"
     echo '   curl -X POST http://localhost:'$HTTP_PORT'/tool \'
     echo '        -H "Content-Type: application/json" \'
+    echo '        -H "Authorization: Bearer your-token" \'
     echo '        -d '\''{"tool": "get-joke", "parameters": {}}'\'''
+    echo ""
+    echo "   # Call a tool with X-API-Key header"
+    echo '   curl -X POST http://localhost:'$HTTP_PORT'/tool \'
+    echo '        -H "Content-Type: application/json" \'
+    echo '        -H "X-API-Key: your-api-key" \'
+    echo '        -H "X-Auth-Token: your-token" \'
+    echo '        -d '\''{"tool": "banbury-get-sessions", "parameters": {"environment": "dev"}}'\'''
 else
     echo "   # For Claude Desktop, add to config:"
     echo "   \"banbury-mcp\": {"
     echo "     \"command\": \"$(pwd)/run.sh\""
     echo "   }"
 fi
+
+echo ""
+echo "🔐 Authentication Methods (HTTP mode):"
+echo "   • Authorization: Bearer <token>"
+echo "   • X-Auth-Token: <token>"
+echo "   • X-API-Key: <api-key>"
+echo "   • Parameters: token/apiKey in request body"
 
 echo ""
 echo "Starting server..."
