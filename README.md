@@ -1,199 +1,208 @@
-# Banbury MCP Server
+# Banbury Cloud MCP Server
 
-A Model Context Protocol (MCP) server that provides tools to interact with the Banbury backend API.
+A Model Context Protocol (MCP) server that provides access to Banbury's backend services for LLMs and AI applications.
 
-## Features
+## Quick Start
 
-This MCP server provides comprehensive access to your Banbury backend with the following tool categories:
+### For Frontend Integration (HTTP Mode)
 
-### Authentication Tools
-- **banbury-login**: Authenticate with username/password
-- **banbury-auth-status**: Check current authentication status
-
-### Device Management Tools
-- **banbury-get-device-info**: Get detailed device information
-- **banbury-update-device**: Update device information in the backend
-- **banbury-declare-online**: Declare device as online
-
-### File Management Tools
-- **banbury-get-files**: Get files from a specific file path
-- **banbury-get-scanned-folders**: Get list of scanned folders
-
-### Session/Task Management Tools
-- **banbury-get-sessions**: Retrieve session data
-- **banbury-add-task**: Add a new task
-
-### Model Management Tools
-- **banbury-add-model**: Register a downloaded model for a device
-
-### Demo Tools (Original)
-- **add**: Simple addition tool
-- **get-joke**: Fetch a random joke
-
-## Setup
-
-1. Install dependencies:
 ```bash
-npm install
+# Run on default port 3001
+./run-http.sh
+
+# Run on custom port
+./run-http.sh 8080
 ```
 
-2. Build the project:
-```bash
-npm run build
+Then add to your frontend `.env`:
+```
+REACT_APP_MCP_SERVER_URL=http://localhost:3001
 ```
 
-3. Run the MCP server:
+### For Claude Desktop (Stdio Mode)
+
 ```bash
-node main.js
+# Default stdio mode
+./run.sh
 ```
+
+Add to Claude Desktop config:
+```json
+{
+  "mcpServers": {
+    "banbury-mcp": {
+      "command": "/path/to/banbury-mcp-server/run.sh"
+    }
+  }
+}
+```
+
+## Transport Modes
+
+### HTTP Transport
+- **Use for**: Frontend integration, web applications, API access
+- **Port**: Configurable (default: 3001)
+- **Endpoints**:
+  - `POST /tool` - Execute MCP tools
+  - `GET /health` - Server health and info
+
+### Stdio Transport  
+- **Use for**: Claude Desktop, direct process communication
+- **Communication**: stdin/stdout
+- **Integration**: MCP client libraries
+
+## Environment Variables
+
+```bash
+# Transport mode: 'http' or 'stdio' (default: stdio)
+export MCP_TRANSPORT=http
+
+# HTTP port (default: 3001)  
+export MCP_HTTP_PORT=8080
+
+# Banbury environment: 'dev' or 'prod' (default: dev)
+export BANBURY_ENV=dev
+```
+
+## Available Tools
+
+### Authentication
+- `banbury-login` - Authenticate with Banbury credentials
+
+### Device Management  
+- `banbury-get-device-info` - Get device information
+- `banbury-update-device` - Update device data
+- `banbury-declare-online` - Declare device online
+
+### File Management
+- `banbury-get-files` - Get files from specific path
+- `banbury-get-scanned-folders` - Get scanned folder list
+
+### Task Management
+- `banbury-get-sessions` - Get user sessions
+- `banbury-add-task` - Add new task
+
+### Model Management
+- `banbury-add-model` - Add model to device
+
+### Utility Tools
+- `add` - Simple addition (testing)
+- `get-joke` - Random joke (entertainment)
 
 ## Usage Examples
 
-### Authentication
-First, authenticate with your Banbury backend:
-```json
-{
-  "tool": "banbury-login",
-  "parameters": {
-    "username": "your_username",
-    "password": "your_password",
-    "environment": "dev"
-  }
-}
+### HTTP Mode
+
+```bash
+# Health check
+curl http://localhost:3001/health
+
+# Get a joke
+curl -X POST http://localhost:3001/tool \
+  -H "Content-Type: application/json" \
+  -d '{"tool": "get-joke", "parameters": {}}'
+
+# Login to Banbury  
+curl -X POST http://localhost:3001/tool \
+  -H "Content-Type: application/json" \
+  -d '{
+    "tool": "banbury-login", 
+    "parameters": {
+      "username": "your-username",
+      "password": "your-password",
+      "environment": "dev"
+    }
+  }'
+
+# Get device info (requires token from login)
+curl -X POST http://localhost:3001/tool \
+  -H "Content-Type: application/json" \
+  -d '{
+    "tool": "banbury-get-device-info",
+    "parameters": {
+      "token": "your-auth-token", 
+      "device_name": "your-device",
+      "environment": "dev"
+    }
+  }'
 ```
 
-Check authentication status:
-```json
-{
-  "tool": "banbury-auth-status",
-  "parameters": {}
-}
+### Frontend Integration
+
+The MCP server integrates seamlessly with the Banbury frontend:
+
+1. Set environment variable: `REACT_APP_MCP_SERVER_URL=http://localhost:3001`
+2. The frontend automatically uses stored Banbury credentials
+3. AI conversations can call Banbury tools naturally
+4. Real-time status indicators show connection/auth state
+
+## Development
+
+### Project Structure
+```
+banbury-mcp-server/
+├── main.ts           # Main server code
+├── run.sh           # Stdio mode runner
+├── run-http.sh      # HTTP mode runner  
+├── package.json     # Dependencies
+└── README.md        # Documentation
 ```
 
-### Device Management
-Get device information:
-```json
-{
-  "tool": "banbury-get-device-info",
-  "parameters": {
-    "device_name": "your-device-name",
-    "environment": "dev"
-  }
-}
+### Adding New Tools
+
+1. Add tool definition in `main.ts`:
+```typescript
+server.tool("my-new-tool", {
+  token: z.string(),
+  my_param: z.string(),
+  environment: z.enum(['dev', 'prod']).default('dev')
+}, async ({ token, my_param, environment }) => {
+  // Implementation
+});
 ```
 
-Update device status:
-```json
-{
-  "tool": "banbury-update-device",
-  "parameters": {
-    "username": "your_username",
-    "environment": "dev"
-  }
-}
+2. Add HTTP handler case:
+```typescript
+case 'my-new-tool':
+  result = await handleMyNewTool(parameters);
+  break;
 ```
 
-Declare device online:
-```json
-{
-  "tool": "banbury-declare-online",
-  "parameters": {
-    "environment": "dev"
-  }
-}
+### Testing
+
+```bash
+# Install dependencies
+npm install
+
+# Run in development
+npm run dev
+
+# Type checking
+npm run type-check
 ```
-
-### File Operations
-Get files from a path:
-```json
-{
-  "tool": "banbury-get-files",
-  "parameters": {
-    "file_path": "/path/to/files",
-    "environment": "dev"
-  }
-}
-```
-
-Get scanned folders:
-```json
-{
-  "tool": "banbury-get-scanned-folders",
-  "parameters": {
-    "environment": "dev"
-  }
-}
-```
-
-### Session Management
-Get sessions:
-```json
-{
-  "tool": "banbury-get-sessions",
-  "parameters": {
-    "environment": "dev"
-  }
-}
-```
-
-Add a task:
-```json
-{
-  "tool": "banbury-add-task",
-  "parameters": {
-    "task_description": "Process new files",
-    "environment": "dev"
-  }
-}
-```
-
-### Model Management
-Add a model:
-```json
-{
-  "tool": "banbury-add-model",
-  "parameters": {
-    "device_name": "your-device-name",
-    "model_name": "llama2-7b",
-    "environment": "dev"
-  }
-}
-```
-
-## Configuration
-
-The server supports both development and production environments:
-
-- **Development**: `http://www.api.dev.banbury.io`
-- **Production**: `http://54.224.116.254:8080`
-
-Authentication tokens are automatically stored in `~/.banbury/token` and usernames in `~/.banbury/username` for persistence across sessions.
-
-## Environment Parameters
-
-Most tools accept an `environment` parameter:
-- `"dev"` (default): Points to development backend
-- `"prod"`: Points to production backend
 
 ## Security
 
-- Authentication tokens are stored securely in `~/.banbury/` with restricted file permissions (0o600)
-- All API requests use Bearer token authentication when available
-- Credentials are automatically loaded from disk for subsequent requests
+- All Banbury API calls require authentication tokens
+- CORS enabled for frontend integration
+- No sensitive data logged or cached
+- Token validation handled by Banbury backend
 
-## Error Handling
+## Troubleshooting
 
-All tools include comprehensive error handling and will return descriptive error messages for:
-- Authentication failures
-- Network errors
-- API errors
-- Missing parameters
+### Connection Issues
+- Verify the server is running: `curl http://localhost:3001/health`
+- Check firewall settings for HTTP mode
+- Ensure Banbury backend URLs are accessible
 
-## Testing
+### Authentication Errors  
+- Verify Banbury credentials are valid
+- Check token hasn't expired
+- Ensure proper environment (dev/prod) selection
 
-Test the server with:
-```bash
-./test.sh
-```
+### Tool Execution Errors
+- Check server logs for detailed error messages
+- Verify required parameters are provided
+- Ensure token has proper permissions
 
-This will test the basic addition tool to ensure the MCP server is working correctly.
+For more help, check the server logs or the Banbury frontend integration guide.
