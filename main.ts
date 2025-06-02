@@ -825,6 +825,98 @@ async function startServer() {
             priorityOrder: 'Authorization Bearer > X-Auth-Token > Request Parameters'
           }
         }));
+      } else if (req.method === 'GET' && req.url === '/tools') {
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({
+          tools: [
+            {
+              name: "add",
+              description: "Add two numbers together",
+              inputSchema: {
+                type: "object",
+                properties: {
+                  a: { type: "number", description: "First number" },
+                  b: { type: "number", description: "Second number" }
+                },
+                required: ["a", "b"]
+              }
+            },
+            {
+              name: "get-joke",
+              description: "Get a random joke",
+              inputSchema: {
+                type: "object",
+                properties: {},
+                required: []
+              }
+            },
+            {
+              name: "banbury-login",
+              description: "Login to Banbury and get authentication token",
+              inputSchema: {
+                type: "object",
+                properties: {
+                  username: { type: "string", description: "Username" },
+                  password: { type: "string", description: "Password" },
+                  environment: { type: "string", enum: ["dev", "prod"], description: "Environment" }
+                },
+                required: ["username", "password"]
+              }
+            },
+            {
+              name: "banbury-get-device-info",
+              description: "Get information about a specific device",
+              inputSchema: {
+                type: "object",
+                properties: {
+                  token: { type: "string", description: "Authentication token" },
+                  device_name: { type: "string", description: "Name of the device" },
+                  environment: { type: "string", enum: ["dev", "prod"], description: "Environment" }
+                },
+                required: ["token", "device_name"]
+              }
+            },
+            {
+              name: "banbury-get-scanned-folders",
+              description: "Get scanned folders for a device",
+              inputSchema: {
+                type: "object",
+                properties: {
+                  token: { type: "string", description: "Authentication token" },
+                  device_name: { type: "string", description: "Device name (optional, will auto-detect if not provided)" },
+                  environment: { type: "string", enum: ["dev", "prod"], description: "Environment" }
+                },
+                required: ["token"]
+              }
+            },
+            {
+              name: "banbury-add-task",
+              description: "Add a new task to Banbury",
+              inputSchema: {
+                type: "object",
+                properties: {
+                  token: { type: "string", description: "Authentication token" },
+                  task_description: { type: "string", description: "Description of the task" },
+                  device_name: { type: "string", description: "Device name (optional)" },
+                  environment: { type: "string", enum: ["dev", "prod"], description: "Environment" }
+                },
+                required: ["token", "task_description"]
+              }
+            },
+            {
+              name: "banbury-get-sessions",
+              description: "Get current sessions",
+              inputSchema: {
+                type: "object",
+                properties: {
+                  token: { type: "string", description: "Authentication token" },
+                  environment: { type: "string", enum: ["dev", "prod"], description: "Environment" }
+                },
+                required: ["token"]
+              }
+            }
+          ]
+        }));
       } else {
         res.writeHead(404, { 'Content-Type': 'application/json' });
         res.end(JSON.stringify({ error: 'Not found' }));
