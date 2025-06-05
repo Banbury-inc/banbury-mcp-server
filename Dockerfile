@@ -1,23 +1,27 @@
 # Use Node.js LTS Alpine image for smaller size
 FROM node:18-alpine
 
-# Install curl for health checks
-RUN apk add --no-cache curl
+# Install curl for health checks and other utilities
+RUN apk add --no-cache curl dumb-init
 
 # Set working directory
 WORKDIR /app
 
-# Copy package files
+# Copy package files first for better Docker layer caching
 COPY package*.json ./
+COPY tsconfig.json ./
 
-# Install dependencies
-RUN npm ci --only=production
+# Install all dependencies (including devDependencies for building)
+RUN npm ci
 
 # Copy source code
-COPY . ./
+COPY main.ts ./
 
-# Build TypeScript (if main.js doesn't exist)
-RUN if [ ! -f "main.js" ]; then npm run build; fi
+# Build TypeScript
+RUN npm run build
+
+# Remove devDependencies to reduce image size
+RUN npm ci --only=production && npm cache clean --force
 
 # Create non-root user for security
 RUN addgroup -g 1001 -S nodejs && \
@@ -40,4 +44,4 @@ HEALTHCHECK --interval=30s --timeout=5s --start-period=60s --retries=3 \
     CMD curl -f http://localhost:3001/health || exit 1
 
 # Start the server
-CMD ["node", "main.js"] 
+CMD ["node", "dist/main.js"] 
