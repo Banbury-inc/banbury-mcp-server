@@ -1,7 +1,8 @@
 {
   "name": "banbury-mcp-server",
-  "version": "2.0.0",
+  "version": "0.0.1",
   "description": "Banbury Cloud MCP Server for HTTP and Stdio transport",
+  "type": "module",
   "main": "main.js",
   "scripts": {
     "start": "node main.js",
@@ -15,18 +16,17 @@
     "banbury",
     "model-context-protocol"
   ],
-  "author": "Banbury Team",
+  "author": "Banbury",
   "license": "MIT",
   "dependencies": {
-    "@modelcontextprotocol/sdk": "^1.0.0",
-    "node-fetch": "^2.7.0",
-    "zod": "^3.22.0"
+    "@modelcontextprotocol/sdk": "^1.12.1",
+    "node-fetch": "^3.3.2",
+    "zod": "^3.25.42"
   },
   "devDependencies": {
-    "@types/node": "^20.0.0",
-    "@types/node-fetch": "^2.6.0",
-    "typescript": "^5.0.0",
-    "ts-node": "^10.9.0"
+    "@types/node": "^22.15.29",
+    "typescript": "^5.8.3",
+    "ts-node": "^10.9.2"
   },
   "engines": {
     "node": ">=18.0.0"
